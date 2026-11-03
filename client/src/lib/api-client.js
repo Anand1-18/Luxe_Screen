@@ -4,6 +4,8 @@
 // In production set VITE_API_URL to the deployed API origin, e.g. https://luxe-api.onrender.com
 const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
+console.log("API_BASE", API_BASE);
+
 /** Error thrown for any non-2xx response, carrying the API's { code, message, details }. */
 export class ApiClientError extends Error {
   constructor(status, code, message, details) {
@@ -36,6 +38,9 @@ export async function apiFetch(path, init = {}) {
       },
       body: json === undefined ? rest.body : JSON.stringify(json),
     });
+
+    console.log("apiFetch", path, response.status, response.ok, response.headers.get("content-type"));
+
   } catch (error) {
     // A cancelled request (AbortController) should stay an AbortError.
     if (error?.name === "AbortError") throw error;
