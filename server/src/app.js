@@ -38,7 +38,7 @@ export function createApp({ clientOrigin = process.env.CLIENT_ORIGIN } = {}) {
 
   // Only the configured frontend may call the API from a browser.
   // Comma-separated list, e.g. "https://luxe-screen.vercel.app,http://localhost:5173".
-  const allowed = (clientOrigin ?? "http://localhost:5173").split(",").map((o) => o.trim());
+  const allowed = (clientOrigin ?? "http://localhost:5173, https://luxe-screen-cmzx.vercel.app/").split(",").map((o) => o.trim());
   app.use(cors({ origin: allowed }));
 
   app.use(express.json({ limit: "100kb" }));
