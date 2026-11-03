@@ -27,6 +27,9 @@ export class ApiClientError extends Error {
  * Pass `json` to send a JSON request body.
  */
 export async function apiFetch(path, init = {}) {
+
+  console.log("apiFetch", path, init);
+
   const { json, headers, ...rest } = init;
   let response;
   try {
