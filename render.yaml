@@ -1,0 +1,17 @@
+# Render Blueprint for the API (Dashboard → New → Blueprint → pick this repo).
+services:
+  - type: web
+    name: luxe-screens-api
+    rootDir: server
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run db:deploy
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        sync: false # paste your PostgreSQL URL in the dashboard
+      - key: CLIENT_ORIGIN
+        sync: false # your Vercel URL, e.g. https://luxe-screen.vercel.app

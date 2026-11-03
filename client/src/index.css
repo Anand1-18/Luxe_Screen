@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink-950: #08080a;
+  --color-ink-900: #0f0f13;
+  --color-ink-800: #16161c;
+  --color-ink-700: #202029;
+  --color-ink-600: #2c2c37;
+  --color-ink-500: #3d3d4a;
+
+  --color-gold-200: #f5e6c4;
+  --color-gold-300: #ecd39b;
+  --color-gold-400: #e0bb6e;
+  --color-gold-500: #c9a14a;
+  --color-gold-600: #a68136;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+
+  --animate-fade-in: fade-in 0.4s ease-out both;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Keep focused/anchored elements clear of the sticky header (WCAG 2.4.11). */
+  scroll-padding-top: 5rem;
+}
+
+body {
+  background: var(--color-ink-950);
+  color: var(--color-zinc-200);
+}
+
+::selection {
+  background: var(--color-gold-500);
+  color: var(--color-ink-950);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold-400);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Native date picker icon is dark by default; invert it for the dark theme. */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  cursor: pointer;
+}

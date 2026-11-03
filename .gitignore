@@ -1,0 +1,20 @@
+# dependencies
+node_modules/
+
+# builds
+dist/
+coverage/
+*.tsbuildinfo
+
+# env files: secrets stay local; only the examples are committed
+.env
+.env.*
+!.env.example
+
+# logs and OS files
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# deployment
+.vercel

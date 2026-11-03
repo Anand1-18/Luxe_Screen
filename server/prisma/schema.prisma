@@ -1,0 +1,256 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Location {
+  id              String          @id @default(cuid())
+  slug            String          @unique
+  name            String
+  city            String
+  address         String?
+  status          LocationStatus  @default(ACTIVE)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  bookings        Booking[]
+  theaters        Theater[]
+  waitlistEntries WaitlistEntry[]
+}
+
+model Theater {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  name            String
+  tagline         String
+  description     String
+  /// Price for the slot covering up to `includedGuests` people (paise).
+  basePrice       Int
+  includedGuests  Int
+  /// Charge per guest above `includedGuests` (paise).
+  extraGuestPrice Int
+  maxCapacity     Int
+  screen          String
+  sound           String
+  images          String[]
+  amenities       String[]
+  rating          Float     @default(0)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  locationId      String
+  bookings        Booking[]
+  slots           Slot[]
+  location        Location  @relation(fields: [locationId], references: [id])
+
+  @@index([locationId])
+}
+
+/// A recurring time window offered by a theatre every day.
+/// Availability for a given date is derived from active bookings.
+model Slot {
+  id        String     @id @default(cuid())
+  label     String
+  /// 24h "HH:mm" in IST.
+  startTime String
+  endTime   String
+  status    SlotStatus @default(ACTIVE)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  theaterId String
+  bookings  Booking[]
+  theater   Theater    @relation(fields: [theaterId], references: [id], onDelete: Cascade)
+
+  @@unique([theaterId, startTime])
+}
+
+model AddOn {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  name        String
+  description String
+  category    AddOnCategory
+  image       String
+  isActive    Boolean       @default(true)
+  sortOrder   Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  options     AddOnOption[]
+  cartItems   CartItem[]
+
+  @@index([category])
+}
+
+model AddOnOption {
+  id        String     @id @default(cuid())
+  name      String
+  /// Unit price (paise).
+  price     Int
+  sortOrder Int        @default(0)
+  isActive  Boolean    @default(true)
+  addOnId   String
+  addOn     AddOn      @relation(fields: [addOnId], references: [id], onDelete: Cascade)
+  cartItems CartItem[]
+
+  @@unique([addOnId, name])
+}
+
+model Coupon {
+  id             String       @id @default(cuid())
+  code           String       @unique
+  description    String
+  discountType   DiscountType
+  /// Percent (0-100) for PERCENT, paise for FLAT.
+  discountValue  Int
+  /// Minimum order subtotal required (paise).
+  minOrderAmount Int          @default(0)
+  /// Cap on the discount for PERCENT coupons (paise).
+  maxDiscount    Int?
+  validFrom      DateTime
+  validUntil     DateTime
+  usageLimit     Int?
+  usedCount      Int          @default(0)
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  bookings       Booking[]
+}
+
+model Booking {
+  id               String         @id @default(cuid())
+  /// Human-friendly reference shown to the customer, e.g. LXS-7K2M9Q.
+  reference        String         @unique
+  date             DateTime       @db.Date
+  guests           Int
+  customerName     String
+  phone            String
+  email            String
+  occasion         Occasion
+  /// Occasion-specific fields (honouree names, message on screen, etc.).
+  occasionDetails  Json?
+  specialRequests  String?
+  theaterAmount    Int
+  extraGuestAmount Int
+  addOnsAmount     Int
+  discountAmount   Int            @default(0)
+  total            Int
+  status           BookingStatus  @default(PENDING)
+  paymentStatus    PaymentStatus  @default(PENDING)
+  paymentMethod    PaymentMethod?
+  paymentRef       String?        @unique
+  /// "<theaterId>:<slotId>:<YYYY-MM-DD>" while the booking holds the slot
+  /// (PENDING or CONFIRMED); null once released. The unique constraint
+  /// makes double-booking impossible at the database level.
+  activeSlotKey    String?        @unique
+  holdExpiresAt    DateTime?
+  confirmedAt      DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  locationId       String
+  theaterId        String
+  slotId           String
+  couponId         String?
+  coupon           Coupon?        @relation(fields: [couponId], references: [id])
+  location         Location       @relation(fields: [locationId], references: [id])
+  slot             Slot           @relation(fields: [slotId], references: [id])
+  theater          Theater        @relation(fields: [theaterId], references: [id])
+  items            CartItem[]
+
+  @@index([theaterId, date])
+  @@index([email])
+  @@index([status, holdExpiresAt])
+}
+
+model CartItem {
+  id            String      @id @default(cuid())
+  /// Snapshot of the option name/price at booking time so later
+  /// catalogue changes never alter an existing receipt.
+  optionName    String
+  price         Int
+  quantity      Int
+  bookingId     String
+  addOnId       String
+  addOnOptionId String
+  addOn         AddOn       @relation(fields: [addOnId], references: [id])
+  addOnOption   AddOnOption @relation(fields: [addOnOptionId], references: [id])
+  booking       Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+}
+
+model WaitlistEntry {
+  id         String   @id @default(cuid())
+  name       String
+  email      String
+  phone      String?
+  message    String?
+  createdAt  DateTime @default(now())
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id])
+
+  @@unique([email, locationId])
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  message   String
+  createdAt DateTime @default(now())
+}
+
+enum LocationStatus {
+  ACTIVE
+  COMING_SOON
+}
+
+enum SlotStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AddOnCategory {
+  CAKE
+  DECOR
+  GIFT
+}
+
+enum Occasion {
+  BIRTHDAY
+  ANNIVERSARY
+  PROPOSAL
+  DATE_NIGHT
+  BRIDE_TO_BE
+  FRIENDS_PARTY
+  MOVIE_NIGHT
+  CORPORATE
+  OTHER
+}
+
+enum DiscountType {
+  PERCENT
+  FLAT
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  UPI
+  CARD
+  NET_BANKING
+}

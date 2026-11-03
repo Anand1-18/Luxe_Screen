@@ -1,0 +1,29 @@
+{
+  "name": "luxe-screens",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Convenience commands for the standalone Luxe Screens client and server packages.",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "dev:client": "npm --prefix client run dev",
+    "dev:server": "npm --prefix server run dev",
+    "build": "npm --prefix client run build",
+    "preview": "npm --prefix client run preview",
+    "start": "npm --prefix server run start",
+    "test:client": "npm --prefix client test",
+    "test:server": "npm --prefix server test",
+    "test": "npm run test:server && npm run test:client",
+    "db:generate": "npm --prefix server run db:generate",
+    "db:migrate": "npm --prefix server run db:migrate",
+    "db:deploy": "npm --prefix server run db:deploy",
+    "db:seed": "npm --prefix server run db:seed",
+    "db:reset": "npm --prefix server run db:reset",
+    "db:studio": "npm --prefix server run db:studio"
+  },
+  "devDependencies": {
+    "prisma": "^8.0.0-rc.29"
+  }
+}
